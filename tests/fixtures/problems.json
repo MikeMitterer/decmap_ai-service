@@ -1,0 +1,52 @@
+[
+  {
+    "id": "prob-001",
+    "title": "Lack of AI governance framework",
+    "description": "Our company has no clear policies for AI usage, leading to shadow AI adoption by individual departments.",
+    "title_en": "Lack of AI governance framework",
+    "description_en": "Our company has no clear policies for AI usage, leading to shadow AI adoption by individual departments.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "prob-002",
+    "title": "Schlechte Datenqualität für KI-Training",
+    "description": "Unsere historischen Daten sind unvollständig und inkonsistent, was das Training von ML-Modellen erheblich erschwert.",
+    "title_en": "Poor data quality for AI training",
+    "description_en": "Our historical data is incomplete and inconsistent, which significantly hinders training ML models.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "prob-003",
+    "title": "AI model explainability missing",
+    "description": "Stakeholders and regulators demand explainable decisions, but our black-box models cannot provide clear reasoning for their outputs.",
+    "title_en": "AI model explainability missing",
+    "description_en": "Stakeholders and regulators demand explainable decisions, but our black-box models cannot provide clear reasoning for their outputs.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "prob-004",
+    "title": "Employee resistance to AI adoption",
+    "description": "Many employees fear job displacement and actively resist using AI tools, limiting ROI on our AI investments.",
+    "title_en": "Employee resistance to AI adoption",
+    "description_en": "Many employees fear job displacement and actively resist using AI tools, limiting ROI on our AI investments.",
+    "status": "pending",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "prob-005",
+    "title": "Keine DSGVO-konforme KI-Datenpipeline",
+    "description": "Wir verarbeiten personenbezogene Daten in unseren KI-Modellen ohne ausreichende Datenschutzmaßnahmen, was zu Compliance-Risiken führt.",
+    "title_en": "No GDPR-compliant AI data pipeline",
+    "description_en": "We process personal data in our AI models without sufficient privacy measures, leading to compliance risks.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  }
+]

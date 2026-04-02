@@ -1,0 +1,20 @@
+[
+  {
+    "id": "cluster-001",
+    "label": "AI Governance",
+    "problem_count": 2,
+    "problem_ids": ["prob-001", "prob-005"]
+  },
+  {
+    "id": "cluster-002",
+    "label": "Data Quality",
+    "problem_count": 1,
+    "problem_ids": ["prob-002"]
+  },
+  {
+    "id": "cluster-003",
+    "label": "Model Reliability & Explainability",
+    "problem_count": 1,
+    "problem_ids": ["prob-003"]
+  }
+]

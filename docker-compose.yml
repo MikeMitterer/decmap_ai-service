@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-decisionmap}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-decisionmap}
+      POSTGRES_DB: ${POSTGRES_DB:-decisionmap}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-decisionmap} -d ${POSTGRES_DB:-decisionmap}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ai-service:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-decisionmap}:${POSTGRES_PASSWORD:-decisionmap}@postgres:5432/${POSTGRES_DB:-decisionmap}
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
