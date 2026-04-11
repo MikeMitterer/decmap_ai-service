@@ -1,0 +1,232 @@
+[
+  {
+    "id": "ddb96eb0-ca18-4c0d-9449-e763adeafaaa",
+    "title": "Mitarbeiter nutzen ChatGPT unkontrolliert für interne Daten",
+    "title_en": "Employees use ChatGPT uncontrolled with internal data",
+    "description": "Vertriebsmitarbeiter kopieren Kundendaten und interne Strategiepapiere in ChatGPT ohne Genehmigung. Es gibt keine Richtlinien, keine Schulung, kein technisches Schutzkonzept.",
+    "description_en": "Sales staff copy customer data and internal strategy documents into ChatGPT without approval. There are no policies, no training, no technical protection concept.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "836bcc2d-7d37-46a2-95a6-8dc994a5312f",
+    "title": "Kein einheitliches Framework für KI-Risikobeurteilung",
+    "title_en": "No unified framework for AI risk assessment",
+    "description": "Jede Abteilung bewertet KI-Risiken nach eigenen Kriterien. Compliance und IT haben unterschiedliche Einschätzungen — Entscheidungen blockieren sich gegenseitig.",
+    "description_en": "Each department evaluates AI risks by its own criteria. Compliance and IT have conflicting assessments — decisions block each other.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "892d5e91-f1c7-4264-b67e-1b29e8f043d8",
+    "title": "EU AI Act Compliance — kein Überblick über betroffene Systeme",
+    "title_en": "EU AI Act compliance — no overview of affected systems",
+    "description": "Unklar welche produktiven Systeme unter den EU AI Act fallen. Kein Inventar, keine Risikoklassifizierung, Deadline rückt näher.",
+    "description_en": "Unclear which production systems fall under the EU AI Act. No inventory, no risk classification, deadline approaching.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "51024e01-ad8a-41b7-b1f6-5eebed19287f",
+    "title": "Halluzinationen im KI-Kundenservice werden nicht erkannt",
+    "title_en": "AI hallucinations in customer service go undetected",
+    "description": "Unser KI-Chatbot gibt falsche Produktinformationen aus. Kunden erhalten Fehlinformationen — ohne dass Support-Mitarbeiter es bemerken oder korrigieren können.",
+    "description_en": "Our AI chatbot provides incorrect product information. Customers receive misinformation without support staff noticing or being able to correct it.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "3b75e72a-d121-4f02-a043-208bbbb3af43",
+    "title": "KI-Modell für Kreditbewertung zeigt Bias gegen bestimmte Postleitzahlen",
+    "title_en": "AI credit scoring model shows bias against certain postal codes",
+    "description": "Unser Kredit-Scoring-Modell lehnt Anträge aus strukturschwachen Regionen überproportional ab. Vermutlich ein Bias aus den Trainingsdaten — rechtlich und ethisch problematisch.",
+    "description_en": "Our credit scoring model disproportionately rejects applications from economically weak regions. Likely a training data bias — legally and ethically problematic.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "51d9dfd8-417e-4d88-a75c-ce200f0a4be2",
+    "title": "Keine Strategie für Open-Source KI-Modelle vs. proprietäre APIs",
+    "title_en": "No strategy for open-source AI models vs. proprietary APIs",
+    "description": "Teams wählen unabhängig zwischen GPT-4, Claude, Mistral, Llama — ohne zentrale Entscheidungsmatrix. Kosten, Datenschutz und Qualität werden nicht systematisch abgewogen.",
+    "description_en": "Teams independently choose between GPT-4, Claude, Mistral, Llama — without a central decision matrix. Cost, privacy, and quality are not systematically weighed.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "d0ef5895-c36a-4ca7-ab70-ee4db4b4942d",
+    "title": "KI-generierte Inhalte nicht als solche gekennzeichnet",
+    "title_en": "AI-generated content not labelled as such",
+    "description": "Marketing nutzt KI-Tools für Blogartikel, Social Media Posts und Pressemitteilungen ohne Kennzeichnung. Vertrauensverlust bei Aufdeckung — regulatorisches Risiko steigt.",
+    "description_en": "Marketing uses AI tools for blog articles, social media posts and press releases without labelling. Trust loss upon discovery — regulatory risk increasing.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "454f2348-8e8a-4378-8e61-d3ecb025d89a",
+    "title": "Fehlende KI-Kompetenz im mittleren Management",
+    "title_en": "Missing AI competency in middle management",
+    "description": "Abteilungsleiter können KI-Projekte nicht sinnvoll beurteilen oder steuern. Entscheidungen werden entweder blockiert oder unkritisch abgenickt — beides kostet Geld und Vertrauen.",
+    "description_en": "Department heads cannot meaningfully evaluate or steer AI projects. Decisions are either blocked or uncritically approved — both waste money and trust.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "c113fc51-1929-47e0-bb90-5cc385ebcfb1",
+    "title": "KI-Entscheidungen in HR nicht erklärbar für Bewerber",
+    "title_en": "AI decisions in HR not explainable to applicants",
+    "description": "Unser ATS-System filtert Bewerbungen automatisch vor. Abgelehnte Bewerber haben Recht auf Erklärung (DSGVO Art. 22) — die wir technisch nicht liefern können.",
+    "description_en": "Our ATS system automatically pre-filters applications. Rejected applicants have the right to an explanation (GDPR Art. 22) — which we cannot technically provide.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "84af0bcd-3c92-4ff2-b76b-b2f1855f9cf6",
+    "title": "Kein zentrales Inventar der eingesetzten KI-Tools",
+    "title_en": "No central inventory of AI tools in use",
+    "description": "Einzelne Teams kaufen KI-SaaS-Produkte ohne Abstimmung. IT kennt nicht alle im Einsatz befindlichen Tools — Shadow AI im großen Stil.",
+    "description_en": "Individual teams purchase AI SaaS products without coordination. IT does not know all tools currently in use — shadow AI at scale.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "348fc166-571e-41b8-8cfe-6bea6f7348e0",
+    "title": "RAG-System liefert veraltete Informationen aus internem Wissenssystem",
+    "title_en": "RAG system delivers outdated information from internal knowledge base",
+    "description": "Unser RAG-basierter interner Assistent zieht veraltete Dokumente heran. Handbücher aus 2021 werden als aktuell ausgegeben — Mitarbeiter treffen Entscheidungen auf falscher Basis.",
+    "description_en": "Our RAG-based internal assistant retrieves outdated documents. Manuals from 2021 are presented as current — employees make decisions on wrong basis.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "30f62699-b12a-4809-b72e-4c864aa8535c",
+    "title": "Fehlende Erklärbarkeit von KI-Entscheidungen gegenüber Regulatoren",
+    "title_en": "Lack of explainability of AI decisions towards regulators",
+    "description": "Finanzaufsicht verlangt Dokumentation für automatisierte Kreditentscheidungen. Unser Modell ist eine Black Box — wir können weder Entscheidungspfade noch Feature-Gewichtungen erklären.",
+    "description_en": "Financial regulator demands documentation for automated credit decisions. Our model is a black box — we can explain neither decision paths nor feature weights.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "708b40d4-9cb8-4469-b51d-51ad7e412dd0",
+    "title": "Vendor-Lock-in durch dominanten KI-Anbieter",
+    "title_en": "Vendor lock-in through dominant AI provider",
+    "description": "Kernprozesse hängen vollständig von einem einzigen KI-Anbieter ab. Ein Wechsel wäre technisch und wirtschaftlich kaum umsetzbar.",
+    "description_en": "Core processes are entirely dependent on a single AI provider. Switching would be technically and economically near-impossible.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "c2ee5b45-713e-4f96-b20f-6820b86fca05",
+    "title": "Personenbezogene Daten in KI-Trainingsdatensätzen enthalten",
+    "title_en": "Personal data included in AI training datasets",
+    "description": "Interne Analyse zeigt: Kundendaten wurden ohne ausreichende Anonymisierung für ML-Training genutzt. DSGVO-Verstoß möglich.",
+    "description_en": "Internal analysis shows: customer data was used for ML training without sufficient anonymisation. GDPR violation possible.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "f27c88d1-0b73-448b-93c8-a5120ec894d0",
+    "title": "Keine Baseline-Metriken vor KI-Einführung definiert",
+    "title_en": "No baseline metrics defined before AI introduction",
+    "description": "KI-Projekte starten ohne Messung des Ist-Zustands. Ein objektiver Erfolgsnachweis ist nachträglich nicht möglich.",
+    "description_en": "AI projects start without measuring the baseline state. An objective proof of success is not possible afterwards.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "71ee40c7-27fe-46f0-8f35-313ac102b4af",
+    "title": "KI-Systemqualität variiert stark je nach Eingabesprache",
+    "title_en": "AI system quality varies significantly by input language",
+    "description": "Deutsche und französische Anfragen erhalten deutlich schlechtere Antwortqualität als englische. Internationale Teams sind strukturell benachteiligt.",
+    "description_en": "German and French queries receive significantly worse response quality than English. International teams are structurally disadvantaged.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "b90807e0-9628-445d-8476-b3f5d56917bb",
+    "title": "Urheberrechtsstatus KI-generierter Bilder im Marketing ungeklärt",
+    "title_en": "Copyright status of AI-generated marketing images unresolved",
+    "description": "Marketing nutzt Midjourney und DALL-E für Kampagnenmaterial. Rechtslage zum Urheberrecht an generierten Bildern ist in der EU ungeklärt.",
+    "description_en": "Marketing uses Midjourney and DALL-E for campaign material. Legal situation regarding copyright of generated images is unresolved in the EU.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "5c74deef-f34c-4988-8ed7-3739b15b7c02",
+    "title": "Personalisierte KI-Empfehlungen für Kunden nicht nachvollziehbar",
+    "title_en": "Personalised AI recommendations not transparent to customers",
+    "description": "Kunden erhalten produktpersonalisierte KI-Empfehlungen ohne Erklärung der Grundlage. Akzeptanz und Vertrauen sinken.",
+    "description_en": "Customers receive personalised AI product recommendations without explanation of the basis. Acceptance and trust decline.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "1d15a3bb-6bd3-452f-bbd1-1f9d1ed58a7f",
+    "title": "Keine A/B-Tests beim Rollout neuer KI-Modellversionen",
+    "title_en": "No A/B testing when rolling out new AI model versions",
+    "description": "Neue Modellversionen ersetzen alte vollständig ohne kontrollierte Vergleichstests. Qualitätsverschlechterungen werden erst nach vollständigem Rollout bemerkt.",
+    "description_en": "New model versions completely replace old ones without controlled comparison tests. Quality degradation is only noticed after full rollout.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "7451d8f3-092f-4584-9c81-ead00329445a",
+    "title": "LLM-Antworten ohne Quellenangaben nicht überprüfbar",
+    "title_en": "LLM answers without source references are unverifiable",
+    "description": "Unser interner LLM-Assistent gibt Antworten ohne Quellenangaben. Faktenfehler sind für Mitarbeiter nicht erkennbar — kritische Entscheidungen werden auf unsicherer Basis getroffen.",
+    "description_en": "Our internal LLM assistant gives answers without source references. Factual errors are undetectable for employees — critical decisions are made on an uncertain basis.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "9e10260d-5e8a-4741-ae4a-55f719fe8e99",
+    "title": "KI-Hochrisiko-Systeme nach EU AI Act nicht klassifiziert",
+    "title_en": "High-risk AI systems under EU AI Act not classified",
+    "description": "Kein Überblick welche unserer KI-Systeme als Hochrisiko nach EU AI Act einzustufen sind. Compliance-Fristen laufen ohne Vorbereitung ab.",
+    "description_en": "No overview of which of our AI systems qualify as high-risk under the EU AI Act. Compliance deadlines are expiring without preparation.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "70dfe7c0-e38f-4197-919f-a7dd6b27848c",
+    "title": "KI-Chatbot gibt Rechtsauskünfte ohne Haftungsausschluss",
+    "title_en": "AI chatbot provides legal advice without liability disclaimer",
+    "description": "Unser Kundenservice-Chatbot beantwortet Rechtsfragen ohne Hinweis dass keine Rechtsberatung vorliegt. Haftungsrisiko für das Unternehmen erheblich.",
+    "description_en": "Our customer service chatbot answers legal questions without indicating this does not constitute legal advice. Liability risk for the company is significant.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  },
+  {
+    "id": "49f5c5da-1696-4d63-b9a5-382b7bbef27d",
+    "title": "Eingesetzte KI-Tools unterstützen nicht-englische Sprachen mangelhaft",
+    "title_en": "Deployed AI tools inadequately support non-English languages",
+    "description": "KI-gestützte Workflows funktionieren nur auf Englisch zuverlässig. Mitarbeiter in nicht-englischsprachigen Ländern arbeiten mit strukturell schlechterer Toolunterstützung.",
+    "description_en": "AI-supported workflows only work reliably in English. Employees in non-English-speaking countries work with structurally inferior tool support.",
+    "status": "approved",
+    "is_ai_generated": false,
+    "embedding": null
+  }
+]

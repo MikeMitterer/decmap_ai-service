@@ -7,13 +7,13 @@ import pytest
 
 @pytest.fixture
 def sample_problems() -> list[dict]:
-    path = Path(__file__).parent / "fixtures" / "problems.json"
+    path = Path(__file__).parent / "fakedata" / "problems.json"
     return json.loads(path.read_text())
 
 
 @pytest.fixture
 def sample_clusters() -> list[dict]:
-    path = Path(__file__).parent / "fixtures" / "clusters.json"
+    path = Path(__file__).parent / "fakedata" / "clusters.json"
     return json.loads(path.read_text())
 
 

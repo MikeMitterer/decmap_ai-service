@@ -1,0 +1,30 @@
+[
+  {
+    "id": "ddb96eb0-ca18-4c0d-9449-e763adeafaaa",
+    "label": "AI Governance & Policy",
+    "problem_count": 3,
+    "problem_ids": [
+      "ddb96eb0-ca18-4c0d-9449-e763adeafaaa",
+      "836bcc2d-7d37-46a2-95a6-8dc994a5312f",
+      "892d5e91-f1c7-4264-b67e-1b29e8f043d8"
+    ]
+  },
+  {
+    "id": "51024e01-ad8a-41b7-b1f6-5eebed19287f",
+    "label": "Data Quality & Infrastructure",
+    "problem_count": 2,
+    "problem_ids": [
+      "51024e01-ad8a-41b7-b1f6-5eebed19287f",
+      "3b75e72a-d121-4f02-a043-208bbbb3af43"
+    ]
+  },
+  {
+    "id": "51d9dfd8-417e-4d88-a75c-ce200f0a4be2",
+    "label": "AI Explainability & Trust",
+    "problem_count": 2,
+    "problem_ids": [
+      "51d9dfd8-417e-4d88-a75c-ce200f0a4be2",
+      "d0ef5895-c36a-4ca7-ab70-ee4db4b4942d"
+    ]
+  }
+]
