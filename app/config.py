@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     bot_submit_min_seconds: int = 10
     bot_session_max_hourly: int = 10
     bot_ip_max_sessions: int = 5
+    app_version: str = "0.1.0"
     webhook_secret: str = ""
     # Comma-separated list of allowed CORS origins.
     # Example: "https://app.example.com,https://admin.example.com"

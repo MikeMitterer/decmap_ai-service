@@ -15,6 +15,7 @@ async def health_check() -> HealthResponse:
     """
     return HealthResponse(
         status="ok",
+        version=settings.app_version,
         embedding_provider=settings.embedding_provider,
         llm_provider=settings.llm_provider,
     )

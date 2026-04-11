@@ -31,5 +31,6 @@ class ClusteringResult(BaseModel):
 
 class HealthResponse(BaseModel):
     status: str
+    version: str
     embedding_provider: str
     llm_provider: str
