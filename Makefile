@@ -132,11 +132,11 @@ tags: ## Show last 10 tags with message
 	  awk '{printf "    \033[34m%-28s\033[0m \033[32m%s\033[0m\n", $$1, substr($$0, index($$0,$$2))}'
 	@echo
 
-tag-major: precheck ## Bump major version (26.3.0 → 27.0.0)  [MSG="..."]
+tag-major: precheck ## Bump major version (0.1.0 → 1.0.0)  [MSG="..."]
 	source "$${BASH_LIBS}/version.lib.sh" && bumpVer major auto "" current "$${MSG:-}"
 
-tag-minor: precheck ## Bump minor version (26.3.0 → 26.4.0)  [MSG="..."]
+tag-minor: precheck ## Bump minor version (0.1.0 → 0.2.0)  [MSG="..."]
 	source "$${BASH_LIBS}/version.lib.sh" && bumpVer minor auto "" current "$${MSG:-}"
 
-tag-patch: precheck ## Bump patch version (26.3.0 → 26.3.1)  [MSG="..."]
+tag-patch: precheck ## Bump patch version (0.1.0 → 0.1.1)  [MSG="..."]
 	source "$${BASH_LIBS}/version.lib.sh" && bumpVer patch auto "" current "$${MSG:-}"
