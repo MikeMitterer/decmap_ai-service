@@ -13,9 +13,10 @@ YELLOW := \033[0;33m
 RED    := \033[0;31m
 RESET  := \033[0m
 
-.PHONY: help install install-dev lint format test test-unit test-contract \
-        dev build db-migrate db-migrate-create db-migrate-status db-rollback \
-        docker-up docker-down \
+.PHONY: help install install-dev lint format test test-unit test-contract test-integration \
+        dev dev-up dev-down dev-logs \
+        build push deploy rollback \
+        db-migrate db-migrate-create db-migrate-status db-rollback \
         precheck version tags tag-major tag-minor tag-patch
 
 ##@ General
@@ -63,6 +64,17 @@ test-unit: ## Run unit tests only
 test-contract: ## Run contract tests only (requires API keys)
 	@pytest tests/contract/ -v
 
+test-integration: ## Run integration tests (startet Test-Postgres auf Port 5433)
+	docker compose -f docker-compose.test.yml up -d postgres
+	@echo "Warte auf Test-Postgres ..."
+	@until [ "$$(docker inspect --format='{{.State.Health.Status}}' decisionmap-ai-test-postgres 2>/dev/null)" = "healthy" ]; do \
+	  sleep 2; \
+	done
+	POSTGRES_URL=postgresql://test:test@localhost:5433/decisionmap_test pytest tests/ -v; \
+	  _exit=$$?; \
+	  docker compose -f docker-compose.test.yml down -v; \
+	  exit $$_exit
+
 ##@ Database
 
 db-migrate: ## Run pending Alembic migrations
@@ -78,16 +90,30 @@ db-migrate-status: ## Show current migration status
 db-rollback: ## Roll back the last migration
 	@alembic -c database/alembic.ini downgrade -1
 
-##@ Docker
+##@ Entwicklung (Docker)
 
-build: ## Build the Docker image
-	@bash docker/build.sh
+dev-up: ## Dev-Umgebung starten (Postgres + AI-Service)
+	docker compose up -d
 
-docker-up: ## Start services via docker-compose
-	@docker compose up -d
+dev-down: ## Dev-Umgebung stoppen
+	docker compose down
 
-docker-down: ## Stop services via docker-compose
-	@docker compose down
+dev-logs: ## Dev-Logs anzeigen
+	docker compose logs -f
+
+##@ Build & Deploy
+
+build: ## Docker-Image bauen (decisionmap/ai-service)
+	./docker/build.sh --build
+
+push: ## Image in ghcr.io pushen (nach build)
+	./docker/build.sh --push
+
+deploy: ## Image auf Hetzner ausrollen (pull + compose up)
+	./docker/build.sh --deploy
+
+rollback: ## Rollback auf Hetzner  [TAG=version]
+	./docker/build.sh --rollback $(TAG)
 
 ##@ Versioning
 
