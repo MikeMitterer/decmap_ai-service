@@ -102,9 +102,33 @@ while [ $# -ne 0 ]; do
 done
 
 #------------------------------------------------------------------------------
-# Bei den Docker-Images ersetzt die hasVer-Version die Version-Tag-Variante
+# TAG via gitDockerTag (version.lib.sh): Git-Tag als Basis, docker-safe Build-Meta
+# STRICT=2 (Default/relaxed): rc=2 kein Tag, rc=3 dirty — ahead erlaubt
+# STRICT=1: zusätzlich rc=4 wenn ahead > 0
 #
-readonly TAG="$(hashVer 4 "" .)"
+# Überschreiben via Env: STRICT=2 ./build.sh --build
+#
+readonly STRICT=${STRICT:-2}
+
+_tag_rc=0
+TAG="$(gitDockerTag "${STRICT}")" || _tag_rc=$?
+if [[ $_tag_rc -eq 2 ]]; then
+    echo -e "\n${RED}Build abgebrochen:${NC} Kein Git-Tag gefunden." >&2
+    echo -e "${YELLOW}Tipp:${NC} bumpVer  ${BLUE}# oder manuell:${NC} git tag -a v0.1.0+$(date +%y%m%d.%H%M) -m 'Initial release'\n" >&2
+    exit 1
+elif [[ $_tag_rc -eq 3 ]]; then
+    echo -e "\n${RED}Build abgebrochen:${NC} Working-Tree ist dirty." >&2
+    echo -e "${YELLOW}Tipp:${NC} git commit oder git stash\n" >&2
+    exit 1
+elif [[ $_tag_rc -eq 4 ]]; then
+    echo -e "\n${RED}Build abgebrochen:${NC} Repo ist ahead vom letzten Tag (STRICT=1)." >&2
+    echo -e "${YELLOW}Tipp:${NC} bumpVer — oder mit ${BLUE}STRICT=2 ./build.sh --build${NC} (ahead erlaubt)\n" >&2
+    exit 1
+elif [[ $_tag_rc -ne 0 ]]; then
+    echo -e "\n${RED}Build abgebrochen:${NC} gitDockerTag fehlgeschlagen (rc=${_tag_rc}).\n" >&2
+    exit 1
+fi
+readonly TAG
 
 
 #------------------------------------------------------------------------------
@@ -149,6 +173,17 @@ build() {
     echo "$(date +%s)" >> "${TAGFILE}"
 }
 
+# loadLastBuildTag — Tag des letzten Builds lesen und zurückgeben
+#
+#   Gibt den gespeicherten Tag via stdout zurück (für Zuweisung per $(...)).
+#   Alle Meldungen und Warnungen gehen nach stderr, damit stdout sauber bleibt.
+#   Bricht mit exit 1 ab wenn kein Build existiert.
+#   Gibt eine Warnung aus wenn der Build älter als WARN_DAYS Tage ist.
+#
+#   Verwendung:
+#     local _tag
+#     _tag=$(loadLastBuildTag) || exit 1
+#
 loadLastBuildTag() {
     if [[ ! -f "${TAGFILE}" ]]; then
         echo -e "\n${RED}Kein gespeicherter Build-Tag gefunden: ${TAGFILE}${NC}" >&2
@@ -174,6 +209,16 @@ loadLastBuildTag() {
     echo "${_saved_tag}"
 }
 
+# push — Versioniertes Image ins Registry laden
+#
+#   Lädt das lokal gebaute Image unter zwei Tags in die GitHub Container Registry:
+#     ghcr.io/<OWNER>/<NAMESPACE>-<NAME>:<TAG>   (versionierter Tag via gitDockerTag)
+#     ghcr.io/<OWNER>/<NAMESPACE>-<NAME>:latest  (Zeiger auf neueste Version)
+#
+#   Voraussetzung: `docker login ghcr.io` muss vorher erfolgt sein.
+#   In der Jenkins-Pipeline übernimmt das der "Push to ghcr.io"-Stage mit
+#   dem Credential 'github-registry' (GitHub PAT, Scope: write:packages).
+#
 push() {
     local _tag
     _tag=$(loadLastBuildTag) || exit 1
@@ -184,6 +229,20 @@ push() {
     echo -e "\n${GREEN}Push erfolgreich: ${IMAGE}:${_tag}${NC}"
 }
 
+# deploy — Image auf Hetzner ausrollen
+#
+#   Ablauf auf dem Remote-Host (SSH):
+#     1. Image aus ghcr.io pullen: ghcr.io/<OWNER>/…:<TAG>
+#     2. Lokal umtaggen auf <NAMESPACE>/<NAME>:<TAG> und :latest
+#        → docker-compose.yml auf dem Server bleibt unverändert (nutzt :latest)
+#     3. Container neu starten: `docker compose up -d --no-deps --force-recreate`
+#     4. Alte lokale Images aufräumen — es werden maximal KEEP_IMAGES Versionen
+#        behalten (aktuell: 3), damit der Platzbedarf auf dem Server begrenzt bleibt.
+#        :latest wird nie gelöscht. Fehler beim Aufräumen brechen den Deploy nicht ab.
+#
+#   Voraussetzung auf dem Server: einmaliges `docker login ghcr.io` mit einem
+#   PAT (Scope: read:packages), damit das Pull funktioniert.
+#
 deploy() {
     echo -e "\nDeploying ${YELLOW}${IMAGE}:${TAG}${NC} → ${YELLOW}${DEPLOY_HOST}${NC}\n"
     ssh "${DEPLOY_HOST}" "
@@ -201,6 +260,20 @@ deploy() {
     echo -e "\n${GREEN}Deploy erfolgreich: ${TAG}${NC}"
 }
 
+# rollback — Auf eine frühere Version zurückwechseln
+#
+#   Ohne Argument: listet alle noch lokal vorhandenen Versionen auf dem Server
+#     (Tag + Erstellungszeitpunkt, absteigend sortiert) und zeigt die Usage.
+#
+#   Mit Argument <TAG>: setzt :latest auf die gewünschte Version und startet
+#     den Container neu — ohne erneutes Pull aus der Registry.
+#     Das Image muss daher noch lokal auf dem Server vorhanden sein
+#     (d.h. innerhalb der letzten KEEP_IMAGES Versionen).
+#
+#   Beispiele:
+#     ./build.sh --rollback                        # verfügbare Versionen anzeigen
+#     ./build.sh --rollback 0.1.0-build-260412.0824.def34
+#
 rollback() {
     local _tag="${1:-}"
     if [[ -z "${_tag}" ]]; then
