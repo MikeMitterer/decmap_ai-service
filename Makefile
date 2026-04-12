@@ -25,7 +25,6 @@ help: ## Show this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\n$(YELLOW)Usage:$(RESET)\n  make $(BLUE)<target>$(RESET)\n"} \
 		/^[a-zA-Z_-]+:.*?##/ { printf "  $(BLUE)%-22s$(RESET) $(GREEN)%s$(RESET)\n", $$1, $$2 } \
 		/^##@/ { printf "\n$(YELLOW)%s$(RESET)\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
-	@$(MAKE) --no-print-directory hints
 
 # ─── Precheck ───────────────────────────────────────────────────────────────
 
