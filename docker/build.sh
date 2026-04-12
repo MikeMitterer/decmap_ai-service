@@ -136,7 +136,9 @@ readonly TAG
 #
 
 buildSingleArch() {
-    docker build --platform "${PLATFORM}" \
+    # Explizit den Standard-Docker-Builder verwenden — nicht den aktiven buildx-Builder
+    docker buildx build --builder default --platform "${PLATFORM}" \
+        --load \
         -f Dockerfile \
         -t "${NAMESPACE}/${NAME}:latest" -t "${NAMESPACE}/${NAME}:${TAG}" \
         -t "${IMAGE}:latest"             -t "${IMAGE}:${TAG}" \
@@ -152,21 +154,27 @@ buildSingleArch() {
 buildMultiArch() {
     echo -e "\nBuilder:\n${YELLOW}$(docker buildx inspect multiarch | sed 's/^/    /g')${NC}\n"
 
-    docker buildx build --platform "${PLATFORM}" \
+    # Multi-Arch: --push ist Pflicht — buildx kann kein multi-arch Image in den lokalen Cache laden
+    docker buildx build --builder multiarch --platform "${PLATFORM}" \
+        --push \
         -f Dockerfile \
-        -t "${NAMESPACE}/${NAME}:latest" -t "${NAMESPACE}/${NAME}:${TAG}" \
-        -t "${IMAGE}:latest"             -t "${IMAGE}:${TAG}" \
+        -t "${IMAGE}:latest" \
+        -t "${IMAGE}:${TAG}" \
         .. | tee "${LOGFILE}" || exit 1
+
+    echo -e "\n${GREEN}Multi-Arch Push erfolgreich: ${IMAGE}:${TAG}${NC}"
 }
 
 build() {
     echo -e "\nBuilding for Platform: ${YELLOW}${PLATFORM}${NC}\n"
 
-    if [[ "${BUILD_MULTIARCH}" == false ]]; then
-        buildSingleArch
-    else
+    if [[ "${BUILD_MULTIARCH}" == true ]]; then
         buildMultiArch
+        # Push ist bereits erledigt — kein TAGFILE, push() nicht aufrufen
+        return
     fi
+
+    buildSingleArch
 
     # Tag + Zeitstempel persistieren — wird von push() gelesen
     echo "${TAG}"       > "${TAGFILE}"

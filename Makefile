@@ -15,7 +15,7 @@ RESET  := \033[0m
 
 .PHONY: help install install-dev lint format test test-unit test-contract test-integration \
         dev dev-up dev-down dev-logs \
-        build push deploy rollback \
+        build build-amd64 push deploy rollback \
         db-migrate db-migrate-create db-migrate-status db-rollback \
         precheck version tags tag-major tag-minor tag-patch
 
@@ -23,7 +23,7 @@ RESET  := \033[0m
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\n$(YELLOW)Usage:$(RESET)\n  make $(BLUE)<target>$(RESET)\n"} \
-		/^[a-zA-Z_-]+:.*?##/ { printf "  $(BLUE)%-22s$(RESET) $(GREEN)%s$(RESET)\n", $$1, $$2 } \
+		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  $(BLUE)%-22s$(RESET) $(GREEN)%s$(RESET)\n", $$1, $$2 } \
 		/^##@/ { printf "\n$(YELLOW)%s$(RESET)\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 # ─── Precheck ───────────────────────────────────────────────────────────────
@@ -120,10 +120,13 @@ dev-logs: ## Dev-Logs anzeigen
 
 ##@ Build & Deploy
 
-build: ## Docker-Image bauen (decisionmap/ai-service)
-	./docker/build.sh --build
+build: ## Docker-Image bauen — Multi-Arch (amd64 + arm64), direkt gepusht
+	./docker/build.sh --build all
 
-push: ## Image in ghcr.io pushen (nach build)
+build-amd64: ## Docker-Image bauen — linux/amd64 only (Jenkins / CI)
+	./docker/build.sh --build x86
+
+push: ## Image in ghcr.io pushen (nach build-amd64)
 	./docker/build.sh --push
 
 deploy: ## Image auf Hetzner ausrollen (pull + compose up)
