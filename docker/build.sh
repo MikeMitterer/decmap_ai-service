@@ -138,7 +138,6 @@ readonly TAG
 buildSingleArch() {
     # Explizit den Standard-Docker-Builder verwenden — nicht den aktiven buildx-Builder
     docker buildx build --builder default --platform "${PLATFORM}" \
-        --load \
         -f Dockerfile \
         -t "${NAMESPACE}/${NAME}:latest" -t "${NAMESPACE}/${NAME}:${TAG}" \
         -t "${IMAGE}:latest"             -t "${IMAGE}:${TAG}" \
