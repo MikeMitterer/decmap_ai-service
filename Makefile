@@ -25,6 +25,7 @@ help: ## Show this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\n$(YELLOW)Usage:$(RESET)\n  make $(BLUE)<target>$(RESET)\n"} \
 		/^[a-zA-Z_-]+:.*?##/ { printf "  $(BLUE)%-22s$(RESET) $(GREEN)%s$(RESET)\n", $$1, $$2 } \
 		/^##@/ { printf "\n$(YELLOW)%s$(RESET)\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+	@$(MAKE) --no-print-directory hints
 
 # ─── Precheck ───────────────────────────────────────────────────────────────
 
@@ -35,6 +36,23 @@ precheck:
 		echo ""; \
 		exit 1; \
 	fi
+
+
+##@ Hints
+
+hints: ## Show useful links and URLs
+	@echo
+	@printf "  $(YELLOW)GitHub$(RESET)\n"
+	@echo
+	@printf "    $(BLUE)%-14s$(RESET) %s\n" "Repo"         "https://github.com/MikeMitterer/decmap_ai-service"
+	@printf "    $(BLUE)%-14s$(RESET) %s\n" "Docker Image" "https://github.com/users/mangolila/packages/container/package/decisionmap-ai-service"
+	@echo
+	@printf "  $(YELLOW)URLs (nach make dev)$(RESET)\n"
+	@echo
+	@printf "    $(BLUE)%-14s$(RESET) %s\n" "API"   "http://localhost:8000"
+	@printf "    $(BLUE)%-14s$(RESET) %s\n" "Docs"  "http://localhost:8000/docs"
+	@printf "    $(BLUE)%-14s$(RESET) %s\n" "ReDoc" "http://localhost:8000/redoc"
+	@echo
 
 ##@ Development
 
