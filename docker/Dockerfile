@@ -40,7 +40,9 @@ COPY --from=builder /root/.local /root/.local
 COPY . .
 ENV PATH=/root/.local/bin:$PATH
 
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+RUN useradd -m -u 1000 appuser \
+    && chown -R appuser:appuser /app \
+    && chown -R appuser:appuser /root/.local
 USER appuser
 
 EXPOSE 8000
