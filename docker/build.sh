@@ -67,7 +67,7 @@ readonly HAS_DEV_LOCAL="[[ ${IS_CI} != 'true' ]]"
 
 # Die möglichen Plattformen:
 #   https://docs.docker.com/build/building/multi-platform/
-readonly PLATFORMS=("linux/arm64 linux/amd64")
+readonly PLATFORMS="linux/arm64 linux/amd64"
 
 if [[ "${ARCHITECTURE}" == "x86_64" ]]; then
     readonly DEFAULT_PLATFORM="linux/amd64"
@@ -85,14 +85,14 @@ while [ $# -ne 0 ]; do
         --build | -b)
             shift
             if [[ "${OPTION}" == "x86" ]]; then
-                PLATFORM=("linux/amd64")
+                PLATFORM="linux/amd64"
             elif [[ "${OPTION}" == "arm" || "${OPTION}" == "m1" ]]; then
-                PLATFORM=("linux/arm64")
+                PLATFORM="linux/arm64"
             elif [[ "${OPTION}" == "all" ]]; then
-                PLATFORM=("linux/arm64,linux/amd64")
+                PLATFORM="linux/arm64,linux/amd64"
                 BUILD_MULTIARCH=true
             else
-                PLATFORM=("${DEFAULT_PLATFORM}")
+                PLATFORM="${DEFAULT_PLATFORM}"
                 echo "Platform: ${PLATFORM}"
                 break
             fi
@@ -136,8 +136,17 @@ readonly TAG
 #
 
 buildSingleArch() {
-    # Explizit den Standard-Docker-Builder verwenden — nicht den aktiven buildx-Builder
-    docker buildx build --builder default --platform "${PLATFORM}" \
+    # Für single-arch --load einen docker-driver Builder verwenden.
+    # docker-container-Driver (multiarch) ist nach einem multiarch-Push für --load nicht geeignet.
+    # desktop-linux: Docker Desktop (Mac/Windows); default: Linux / CI
+    local _builder
+    if docker buildx inspect desktop-linux &>/dev/null 2>&1; then
+        _builder="desktop-linux"
+    else
+        _builder="default"
+    fi
+
+    docker buildx build --builder "${_builder}" --load --platform "${PLATFORM}" \
         -f Dockerfile \
         -t "${NAMESPACE}/${NAME}:latest" -t "${NAMESPACE}/${NAME}:${TAG}" \
         -t "${IMAGE}:latest"             -t "${IMAGE}:${TAG}" \
@@ -177,7 +186,7 @@ build() {
 
     # Tag + Zeitstempel persistieren — wird von push() gelesen
     echo "${TAG}"       > "${TAGFILE}"
-    echo "$(date +%s)" >> "${TAGFILE}"
+    date +%s >> "${TAGFILE}"
 }
 
 # loadLastBuildTag — Tag des letzten Builds lesen und zurückgeben
@@ -252,6 +261,7 @@ push() {
 #
 deploy() {
     echo -e "\nDeploying ${YELLOW}${IMAGE}:${TAG}${NC} → ${YELLOW}${DEPLOY_HOST}${NC}\n"
+    # shellcheck disable=SC2029
     ssh "${DEPLOY_HOST}" "
         docker pull ${IMAGE}:${TAG} &&
         docker tag  ${IMAGE}:${TAG} ${NAMESPACE}/${NAME}:${TAG} &&
@@ -259,6 +269,7 @@ deploy() {
         cd ${DEPLOY_PATH} && docker compose up -d --no-deps --force-recreate ${NAME}
     "
     # Alte lokale Images auf dem Server aufräumen (behalte KEEP_IMAGES Versionen)
+    # shellcheck disable=SC2029
     ssh "${DEPLOY_HOST}" "
         docker images '${NAMESPACE}/${NAME}' --format '{{.Tag}}' \
             | grep -v '^latest$' | sort -r | tail -n +$((KEEP_IMAGES + 1)) \
@@ -285,12 +296,14 @@ rollback() {
     local _tag="${1:-}"
     if [[ -z "${_tag}" ]]; then
         echo -e "\nVerfügbare Versionen auf ${YELLOW}${DEPLOY_HOST}${NC}:"
+        # shellcheck disable=SC2029
         ssh "${DEPLOY_HOST}" "docker images '${NAMESPACE}/${NAME}' \
             --format '{{.Tag}}\t{{.CreatedAt}}' | grep -v '^latest' | sort -r"
         echo -e "\nUsage: $(basename "$0") --rollback <TAG>"
         exit 0
     fi
     echo -e "\nRollback zu ${YELLOW}${NAMESPACE}/${NAME}:${_tag}${NC} auf ${YELLOW}${DEPLOY_HOST}${NC}\n"
+    # shellcheck disable=SC2029
     ssh "${DEPLOY_HOST}" "
         docker tag '${NAMESPACE}/${NAME}:${_tag}' '${NAMESPACE}/${NAME}:latest' &&
         cd ${DEPLOY_PATH} && docker compose up -d --no-deps --force-recreate ${NAME}
@@ -299,6 +312,7 @@ rollback() {
 }
 
 
+# shellcheck disable=SC2034  # samples wird von showSamples() aus build.lib.sh gelesen
 declare -a samples=(
 "# AI-Service lokal mit Test-DB starten ||
 \t     docker run --name ${NAME} \\
@@ -352,7 +366,7 @@ case "${CMDLINE}" in
     ;;
 
     -i|--images)
-        showImages ${TAG} ${NAMESPACE} ${NAME}
+        showImages "${TAG}" "${NAMESPACE}" "${NAME}"
     ;;
 
     -s|--samples)
