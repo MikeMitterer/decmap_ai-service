@@ -131,9 +131,6 @@ build-amd64: ## Docker-Image bauen — linux/amd64 only (Jenkins / CI)
 push: ## Image in ghcr.io pushen (nach build-amd64)
 	./docker/build.sh --push
 
-deploy: ## Image auf Hetzner ausrollen (pull + compose up)
-	./docker/build.sh --deploy
-
 rollback: ## Rollback auf Hetzner  [TAG=version]
 	./docker/build.sh --rollback $(TAG)
 
