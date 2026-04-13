@@ -6,12 +6,14 @@ SHELL  := /bin/bash
 PYTHON := python3.11
 PIP    := $(PYTHON) -m pip
 
-# Colors
-GREEN  := \033[0;32m
-BLUE   := \033[0;34m
-YELLOW := \033[0;33m
-RED    := \033[0;31m
-RESET  := \033[0m
+-include ${DEV_MAKE}/colours.mk
+
+# Fallbacks wenn DEV_MAKE nicht verfügbar (z.B. auf dem Server)
+YELLOW ?= $(shell printf "\033[38;5;3m")
+GREEN  ?= $(shell printf "\033[38;5;2m")
+BLUE   ?= $(shell printf "\033[38;5;6m")
+RED    ?= $(shell printf "\033[38;5;1m")
+RESET  ?= $(shell printf "\033[0m")
 
 .PHONY: help install install-dev lint format test test-unit test-contract test-integration \
         dev dev-up dev-down dev-logs \
@@ -135,28 +137,33 @@ deploy: ## Image auf Hetzner ausrollen (pull + compose up)
 rollback: ## Rollback auf Hetzner  [TAG=version]
 	./docker/build.sh --rollback $(TAG)
 
-##@ Versioning
+##@ Versionierung
 
-version: ## Show current version (pyproject.toml + git tag)
+.PHONY: version
+version: ## Aktuelle Version anzeigen (pyproject.toml + git tag)
 	@echo
 	@VER=$$(grep '^version' pyproject.toml 2>/dev/null | head -1 | sed 's/.*= *"//;s/".*//'); \
 	 [[ -z "$$VER" ]] && VER='nicht gesetzt'; \
 	 TAG=$$(git describe --tags --abbrev=0 2>/dev/null || echo 'kein Tag'); \
-	 printf "    \033[0;33mpyproject\033[0m    = \033[0;34m$$VER\033[0m\n"; \
-	 printf "    \033[0;33mgit tag\033[0m      = \033[0;34m$$TAG\033[0m\n"
+	 echo "    ${YELLOW}pyproject${RESET}    = ${BLUE}$$VER${RESET}"; \
+	 echo "    ${YELLOW}git tag${RESET}      = ${BLUE}$$TAG${RESET}"
 	@echo
 
-tags: ## Show last 10 tags with message
+.PHONY: tags
+tags: ## Letzte 10 Tags mit Message anzeigen
 	@echo
 	@git tag --sort=-version:refname -n1 | head -10 | \
 	  awk '{printf "    \033[34m%-28s\033[0m \033[32m%s\033[0m\n", $$1, substr($$0, index($$0,$$2))}'
 	@echo
 
-tag-major: precheck ## Bump major version (0.1.0 → 1.0.0)  [MSG="..."]
+.PHONY: tag-major
+tag-major: precheck ## Version hochzählen — Major (0.1.0 → 1.0.0)  [MSG="..."]
 	source "$${BASH_LIBS}/version.lib.sh" && bumpVer major auto "" current "$${MSG:-}"
 
-tag-minor: precheck ## Bump minor version (0.1.0 → 0.2.0)  [MSG="..."]
+.PHONY: tag-minor
+tag-minor: precheck ## Version hochzählen — Minor (0.1.0 → 0.2.0)  [MSG="..."]
 	source "$${BASH_LIBS}/version.lib.sh" && bumpVer minor auto "" current "$${MSG:-}"
 
-tag-patch: precheck ## Bump patch version (0.1.0 → 0.1.1)  [MSG="..."]
+.PHONY: tag-patch
+tag-patch: precheck ## Version hochzählen — Patch (0.1.0 → 0.1.1)  [MSG="..."]
 	source "$${BASH_LIBS}/version.lib.sh" && bumpVer patch auto "" current "$${MSG:-}"
