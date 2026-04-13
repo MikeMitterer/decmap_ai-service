@@ -36,13 +36,12 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get clean && apt-get -y update && apt-get
 ENV TERM=xterm-256color
 
 WORKDIR /app
-COPY --from=builder /root/.local /root/.local
+COPY --from=builder /root/.local /opt/.local
 COPY . .
-ENV PATH=/root/.local/bin:$PATH
+ENV PATH=/opt/.local/bin:$PATH
 
 RUN useradd -m -u 1000 appuser \
-    && chown -R appuser:appuser /app \
-    && chown -R appuser:appuser /root/.local
+    && chown -R appuser:appuser /app /opt/.local
 USER appuser
 
 EXPOSE 8000
