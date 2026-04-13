@@ -114,7 +114,7 @@ _tag_rc=0
 TAG="$(gitDockerTag "${STRICT}")" || _tag_rc=$?
 if [[ $_tag_rc -eq 2 ]]; then
     echo -e "\n${RED}Build abgebrochen:${NC} Kein Git-Tag gefunden." >&2
-    echo -e "${YELLOW}Tipp:${NC} bumpVer  ${BLUE}# oder manuell:${NC} git tag -a v0.1.0+$(date +%y%m%d.%H%M) -m 'Initial release'\n" >&2
+    echo -e "${YELLOW}Tipp:${NC} semVerBump patch  ${BLUE}# oder manuell:${NC} git tag -a v0.1.0+$(date +%y%m%d.%H%M) -m 'Initial release'\n" >&2
     exit 1
 elif [[ $_tag_rc -eq 3 ]]; then
     echo -e "\n${RED}Build abgebrochen:${NC} Working-Tree ist dirty." >&2
@@ -122,7 +122,7 @@ elif [[ $_tag_rc -eq 3 ]]; then
     exit 1
 elif [[ $_tag_rc -eq 4 ]]; then
     echo -e "\n${RED}Build abgebrochen:${NC} Repo ist ahead vom letzten Tag (STRICT=1)." >&2
-    echo -e "${YELLOW}Tipp:${NC} bumpVer — oder mit ${BLUE}STRICT=2 ./build.sh --build${NC} (ahead erlaubt)\n" >&2
+    echo -e "${YELLOW}Tipp:${NC} semVerBump patch — oder mit ${BLUE}STRICT=2 ./build.sh --build${NC} (ahead erlaubt)\n" >&2
     exit 1
 elif [[ $_tag_rc -ne 0 ]]; then
     echo -e "\n${RED}Build abgebrochen:${NC} gitDockerTag fehlgeschlagen (rc=${_tag_rc}).\n" >&2

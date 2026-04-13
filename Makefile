@@ -142,7 +142,7 @@ rollback: ## Rollback auf Hetzner  [TAG=version]
 .PHONY: version
 version: ## Aktuelle Version anzeigen (pyproject.toml + git tag)
 	@echo
-	@VER=$$(grep '^version' pyproject.toml 2>/dev/null | head -1 | sed 's/.*= *"//;s/".*//'); \
+	@VER=$$(awk -F'"' '/^version /{print $$2}' pyproject.toml 2>/dev/null); \
 	 [[ -z "$$VER" ]] && VER='nicht gesetzt'; \
 	 TAG=$$(git describe --tags --abbrev=0 2>/dev/null || echo 'kein Tag'); \
 	 echo "    ${YELLOW}pyproject${RESET}    = ${BLUE}$$VER${RESET}"; \
@@ -157,13 +157,13 @@ tags: ## Letzte 10 Tags mit Message anzeigen
 	@echo
 
 .PHONY: tag-major
-tag-major: precheck ## Version hochzählen — Major (0.1.0 → 1.0.0)  [MSG="..."]
-	source "$${BASH_LIBS}/version.lib.sh" && bumpVer major auto "" current "$${MSG:-}"
+tag-major: precheck ## Version hochzählen — Major (X.y.z → X+1.0.0)  [MSG="..."]
+	source "$${BASH_LIBS}/version.lib.sh" && semVerBump major auto "" "$${MSG:-}"
 
 .PHONY: tag-minor
-tag-minor: precheck ## Version hochzählen — Minor (0.1.0 → 0.2.0)  [MSG="..."]
-	source "$${BASH_LIBS}/version.lib.sh" && bumpVer minor auto "" current "$${MSG:-}"
+tag-minor: precheck ## Version hochzählen — Minor (x.Y.z → x.Y+1.0)  [MSG="..."]
+	source "$${BASH_LIBS}/version.lib.sh" && semVerBump minor auto "" "$${MSG:-}"
 
 .PHONY: tag-patch
-tag-patch: precheck ## Version hochzählen — Patch (0.1.0 → 0.1.1)  [MSG="..."]
-	source "$${BASH_LIBS}/version.lib.sh" && bumpVer patch auto "" current "$${MSG:-}"
+tag-patch: precheck ## Version hochzählen — Patch (x.y.Z → x.y.Z+1)  [MSG="..."]
+	source "$${BASH_LIBS}/version.lib.sh" && semVerBump patch auto "" "$${MSG:-}"
