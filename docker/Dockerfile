@@ -39,6 +39,7 @@ WORKDIR /app
 COPY --from=builder /root/.local /opt/.local
 COPY . .
 ENV PATH=/opt/.local/bin:$PATH
+ENV PYTHONPATH=/opt/.local/lib/python3.11/site-packages
 
 RUN useradd -m -u 1000 appuser \
     && chown -R appuser:appuser /app /opt/.local
