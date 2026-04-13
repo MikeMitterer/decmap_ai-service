@@ -26,6 +26,13 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 
 FROM python:3.11-slim AS runner
 
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
+    mc \
+    jq \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV TERM=xterm-256color
+
 WORKDIR /app
 COPY --from=builder /root/.local /opt/.local
 COPY . .
