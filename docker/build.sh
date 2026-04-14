@@ -135,58 +135,21 @@ readonly TAG
 # Functions
 #
 
-buildSingleArch() {
-    # Für single-arch --load einen docker-driver Builder verwenden.
-    # docker-container-Driver (multiarch) ist nach einem multiarch-Push für --load nicht geeignet.
-    # desktop-linux: Docker Desktop (Mac/Windows); default: Linux / CI
-    local _builder
-    if docker buildx inspect desktop-linux &>/dev/null 2>&1; then
-        _builder="desktop-linux"
-    else
-        _builder="default"
-    fi
-
-    docker buildx build --builder "${_builder}" --load --platform "${PLATFORM}" \
-        -f Dockerfile \
-        -t "${NAMESPACE}/${NAME}:latest" -t "${NAMESPACE}/${NAME}:${TAG}" \
-        -t "${IMAGE}:latest"             -t "${IMAGE}:${TAG}" \
-        .. | tee "${LOGFILE}" || exit 1
-
-    local _ARCH
-    _ARCH=$(docker inspect "${NAMESPACE}/${NAME}:latest" --format "{{ .Architecture }}")
-    echo -e "\n${GREEN}${NAMESPACE}/${NAME}:latest${NC} gebaut für ${YELLOW}${_ARCH}${NC}"
-
-    showImages "${TAG}" ${NAMESPACE} ${NAME}
-}
-
-buildMultiArch() {
-    echo -e "\nBuilder:\n${YELLOW}$(docker buildx inspect multiarch | sed 's/^/    /g')${NC}\n"
-
-    # Multi-Arch: --push ist Pflicht — buildx kann kein multi-arch Image in den lokalen Cache laden
-    docker buildx build --builder multiarch --platform "${PLATFORM}" \
-        --push \
-        -f Dockerfile \
-        -t "${IMAGE}:latest" \
-        -t "${IMAGE}:${TAG}" \
-        .. | tee "${LOGFILE}" || exit 1
-
-    echo -e "\n${GREEN}Multi-Arch Push erfolgreich: ${IMAGE}:${TAG}${NC}"
-}
-
 build() {
     echo -e "\nBuilding for Platform: ${YELLOW}${PLATFORM}${NC}\n"
 
     if [[ "${BUILD_MULTIARCH}" == true ]]; then
-        buildMultiArch
+        buildMultiArchImage "${PLATFORM}" "${IMAGE}" "${TAG}" "${LOGFILE}"
         # Push ist bereits erledigt — kein TAGFILE, push() nicht aufrufen
         return
     fi
 
-    buildSingleArch
+    buildSingleArchImage "${PLATFORM}" "${NAMESPACE}/${NAME}" "${IMAGE}" "${TAG}" "${LOGFILE}"
+    showImages "${TAG}" ${NAMESPACE} ${NAME}
 
     # Tag + Zeitstempel persistieren — wird von push() gelesen
     echo "${TAG}"       > "${TAGFILE}"
-    date +%s >> "${TAGFILE}"
+    echo "$(date +%s)" >> "${TAGFILE}"
 }
 
 # loadLastBuildTag — Tag des letzten Builds lesen und zurückgeben
