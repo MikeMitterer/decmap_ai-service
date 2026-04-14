@@ -249,16 +249,35 @@ async def solution_approved(
 async def vote_changed(
     payload: VoteChangedRequest,
 ) -> dict:
-    """Directus Flow webhook — called when a vote is cast or changed."""
+    """Directus Flow webhook — called when a vote is cast or changed.
+
+    The Directus Flow only needs to send entity_id and entity_type.
+    new_score is calculated from the DB if not provided in the payload,
+    so the Flow does not need to compute the score itself.
+    """
     log = logger.bind(entity_id=payload.entity_id, entity_type=payload.entity_type)
     log.debug("vote_changed_hook_received")
+
+    if payload.new_score is not None:
+        new_score = payload.new_score
+    else:
+        table = "problems" if payload.entity_type == "problem" else "solution_approaches"
+        async with await psycopg.AsyncConnection.connect(settings.postgres_url) as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    f"SELECT vote_score FROM {table} WHERE id = %s",  # noqa: S608
+                    (payload.entity_id,),
+                )
+                row = await cur.fetchone()
+        new_score = row[0] if row else 0
+        log.debug("vote_score_fetched_from_db", new_score=new_score)
 
     await websocket_service.broadcast(
         VoteChangedEvent(
             payload=VoteChangedPayload(
                 entity_id=payload.entity_id,
                 entity_type=payload.entity_type,
-                new_score=payload.new_score,
+                new_score=new_score,
             )
         )
     )

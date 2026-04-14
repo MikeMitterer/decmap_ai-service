@@ -30,4 +30,4 @@ class SolutionApprovedPayload(BaseModel):
 class VoteChangedPayload(BaseModel):
     entity_id: str
     entity_type: Literal["problem", "solution"]
-    new_score: int
+    new_score: int | None = None
