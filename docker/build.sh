@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #------------------------------------------------------------------------------
-# Build + Deploy Docker-Image: decisionmap/ai-service
+# Build Docker-Image: decisionmap/ai-service
 #------------------------------------------------------------------------------
 
 # Vars die in .bashrc gesetzt sein müssen ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -29,9 +29,6 @@ readonly DOCKER_BASE_IMAGE=$(\grep "^FROM " < Dockerfile | head -1 | sed "s/FROM
 readonly NAMESPACE="decisionmap"
 readonly NAME="ai-service"
 
-readonly DEPLOY_HOST="hetzner"
-readonly DEPLOY_PATH="/opt/${NAMESPACE}/${NAME}"
-
 #GITHUB_OWNER="mikemitterer"
 GITHUB_OWNER="mangolila"
 
@@ -40,8 +37,6 @@ if [[ -z "${GITHUB_OWNER:-}" ]]; then echo "Var 'GITHUB_OWNER' nicht gesetzt!"; 
 
 readonly REGISTRY="ghcr.io"
 readonly IMAGE="${REGISTRY}/${GITHUB_OWNER}/${NAMESPACE}-${NAME}"
-# Wie viele versionierte Images auf dem Server behalten (für Rollback)
-readonly KEEP_IMAGES=5
 
 readonly TAGFILE="${SCRIPTPATH}/.last-build-tag"
 readonly WARN_DAYS=7
@@ -208,73 +203,6 @@ push() {
     echo -e "\n${GREEN}Push erfolgreich: ${IMAGE}:${_tag}${NC}"
 }
 
-# deploy — Image auf Hetzner ausrollen
-#
-#   Ablauf auf dem Remote-Host (SSH):
-#     1. Image aus ghcr.io pullen: ghcr.io/<OWNER>/…:<TAG>
-#     2. Lokal umtaggen auf <NAMESPACE>/<NAME>:<TAG> und :latest
-#        → docker-compose.yml auf dem Server bleibt unverändert (nutzt :latest)
-#     3. Container neu starten: `docker compose up -d --no-deps --force-recreate`
-#     4. Alte lokale Images aufräumen — es werden maximal KEEP_IMAGES Versionen
-#        behalten (aktuell: 3), damit der Platzbedarf auf dem Server begrenzt bleibt.
-#        :latest wird nie gelöscht. Fehler beim Aufräumen brechen den Deploy nicht ab.
-#
-#   Voraussetzung auf dem Server: einmaliges `docker login ghcr.io` mit einem
-#   PAT (Scope: read:packages), damit das Pull funktioniert.
-#
-deploy() {
-    echo -e "\nDeploying ${YELLOW}${IMAGE}:${TAG}${NC} → ${YELLOW}${DEPLOY_HOST}${NC}\n"
-    # shellcheck disable=SC2029
-    ssh "${DEPLOY_HOST}" "
-        docker pull ${IMAGE}:${TAG} &&
-        docker tag  ${IMAGE}:${TAG} ${NAMESPACE}/${NAME}:${TAG} &&
-        docker tag  ${IMAGE}:${TAG} ${NAMESPACE}/${NAME}:latest &&
-        cd ${DEPLOY_PATH} && docker compose up -d --no-deps --force-recreate ${NAME}
-    "
-    # Alte lokale Images auf dem Server aufräumen (behalte KEEP_IMAGES Versionen)
-    # shellcheck disable=SC2029
-    ssh "${DEPLOY_HOST}" "
-        docker images '${NAMESPACE}/${NAME}' --format '{{.Tag}}' \
-            | grep -v '^latest$' | sort -r | tail -n +$((KEEP_IMAGES + 1)) \
-            | xargs -I{} docker rmi '${NAMESPACE}/${NAME}:{}' 2>/dev/null || true
-    "
-    echo -e "\n${GREEN}Deploy erfolgreich: ${TAG}${NC}"
-}
-
-# rollback — Auf eine frühere Version zurückwechseln
-#
-#   Ohne Argument: listet alle noch lokal vorhandenen Versionen auf dem Server
-#     (Tag + Erstellungszeitpunkt, absteigend sortiert) und zeigt die Usage.
-#
-#   Mit Argument <TAG>: setzt :latest auf die gewünschte Version und startet
-#     den Container neu — ohne erneutes Pull aus der Registry.
-#     Das Image muss daher noch lokal auf dem Server vorhanden sein
-#     (d.h. innerhalb der letzten KEEP_IMAGES Versionen).
-#
-#   Beispiele:
-#     ./build.sh --rollback                        # verfügbare Versionen anzeigen
-#     ./build.sh --rollback 0.1.0-build-260412.0824.def34
-#
-rollback() {
-    local _tag="${1:-}"
-    if [[ -z "${_tag}" ]]; then
-        echo -e "\nVerfügbare Versionen auf ${YELLOW}${DEPLOY_HOST}${NC}:"
-        # shellcheck disable=SC2029
-        ssh "${DEPLOY_HOST}" "docker images '${NAMESPACE}/${NAME}' \
-            --format '{{.Tag}}\t{{.CreatedAt}}' | grep -v '^latest' | sort -r"
-        echo -e "\nUsage: $(basename "$0") --rollback <TAG>"
-        exit 0
-    fi
-    echo -e "\nRollback zu ${YELLOW}${NAMESPACE}/${NAME}:${_tag}${NC} auf ${YELLOW}${DEPLOY_HOST}${NC}\n"
-    # shellcheck disable=SC2029
-    ssh "${DEPLOY_HOST}" "
-        docker tag '${NAMESPACE}/${NAME}:${_tag}' '${NAMESPACE}/${NAME}:latest' &&
-        cd ${DEPLOY_PATH} && docker compose up -d --no-deps --force-recreate ${NAME}
-    "
-    echo -e "\n${GREEN}Rollback auf ${_tag} erfolgreich.${NC}"
-}
-
-
 # shellcheck disable=SC2034  # samples wird von showSamples() aus build.lib.sh gelesen
 declare -a samples=(
 "# AI-Service lokal mit Test-DB starten ||
@@ -309,8 +237,6 @@ usage() {
     usageLine "                                         " "${YELLOW}all${NC}      - shortcut for ${YELLOW}linux/amd64, linux/arm64${NC}" 2
     echo
     usageLine "-p | --push                              " "Push zu ${YELLOW}${IMAGE}${NC}"
-    usageLine "-d | --deploy                            " "Deploy auf ${YELLOW}${DEPLOY_HOST}${NC} (pull + compose up)"
-    usageLine "-r | --rollback [ ${YELLOW}TAG${NC} ]    " "Rollback auf Hetzner (ohne TAG: verfügbare Versionen anzeigen)"
     echo
     usageLine "-i | --images                            " "Images anzeigen: ${YELLOW}${NAMESPACE}/${NAME}${NC}"
     usageLine "-s | --samples                           " "Beispiel docker run Befehle anzeigen"
@@ -338,14 +264,6 @@ case "${CMDLINE}" in
 
     -p|--push)
         push
-    ;;
-
-    -d|--deploy)
-        deploy
-    ;;
-
-    -r|--rollback)
-        rollback "${OPTION}"
     ;;
 
     help|-help|--help|*)

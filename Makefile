@@ -25,8 +25,8 @@ RESET  ?= $(shell printf "\033[0m")
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\n$(YELLOW)Usage:$(RESET)\n  make $(BLUE)<target>$(RESET)\n"} \
-		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  $(BLUE)%-22s$(RESET) $(GREEN)%s$(RESET)\n", $$1, $$2 } \
-		/^##@/ { printf "\n$(YELLOW)%s$(RESET)\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+		/^[a-zA-Z0-9_-]+:.*?##/ { printf "$(THEME_INDENT_TARGET)$(THEME_COLOR_TARGET)%-22s$(RESET) $(THEME_COLOR_DESC)%s$(RESET)\n", $$1, $$2 } \
+		/^##@/ { printf "\n$(THEME_INDENT_GROUP)$(THEME_COLOR_GROUP)%s$(RESET)\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 # ─── Precheck ───────────────────────────────────────────────────────────────
 
@@ -130,9 +130,6 @@ build-amd64: ## Docker-Image bauen — linux/amd64 only (Jenkins / CI)
 
 push: ## Image in ghcr.io pushen (nach build-amd64)
 	./docker/build.sh --push
-
-rollback: ## Rollback auf Hetzner  [TAG=version]
-	./docker/build.sh --rollback $(TAG)
 
 ##@ Versionierung
 
