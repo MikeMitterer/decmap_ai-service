@@ -3,8 +3,12 @@
 ##
 
 SHELL  := /bin/bash
-PYTHON := python3.11
+VENV   := .venv
+PYTHON := $(VENV)/bin/python
 PIP    := $(PYTHON) -m pip
+PYTEST := $(VENV)/bin/pytest
+RUFF   := $(VENV)/bin/ruff
+UVICORN := $(VENV)/bin/uvicorn
 
 -include ${DEV_MAKE}/colours.mk
 
@@ -15,7 +19,7 @@ BLUE   ?= $(shell printf "\033[38;5;6m")
 RED    ?= $(shell printf "\033[38;5;1m")
 RESET  ?= $(shell printf "\033[0m")
 
-.PHONY: help install install-dev lint format test test-unit test-contract test-integration \
+.PHONY: help venv install install-dev lint format test test-unit test-contract test-integration \
         dev dev-up dev-down dev-logs \
         build build-amd64 push deploy rollback \
         db-migrate db-migrate-create db-migrate-status db-rollback \
@@ -54,8 +58,28 @@ hints: ## Show useful links and URLs
 	@printf "    $(BLUE)%-14s$(RESET) %s\n" "Docs"  "http://localhost:8000/docs"
 	@printf "    $(BLUE)%-14s$(RESET) %s\n" "ReDoc" "http://localhost:8000/redoc"
 	@echo
+	@printf "  $(YELLOW)Testen ohne UI-Workflow$(RESET)\n"
+	@echo
+	@printf "    $(BLUE)%-14s$(RESET) %s\n" "Smoke Test"   "scripts/smoke-test.sh --help"
+	@printf "    $(BLUE)%-14s$(RESET) %s\n" "Alle Tests"   "scripts/smoke-test.sh all"
+	@printf "    $(BLUE)%-14s$(RESET) %s\n" "curl-Beisp."  "docs/cmdline.md  (im Root-Repo)"
+	@printf "    $(BLUE)%-14s$(RESET) %s\n" "WebSocket"    "websocat ws://localhost:8000/ws  (brew install websocat)"
+	@echo
+
+# File-based sentinel — Make runs this recipe only when .venv/bin/python is missing.
+# Creates the venv AND installs all dependencies so every dependent target
+# finds its tools (pytest, ruff, uvicorn) on the first run after a clean checkout.
+# All targets that use venv tools declare it as a prerequisite.
+$(VENV)/bin/python:
+	python3.11 -m venv $(VENV)
+	$(VENV)/bin/pip install -r requirements.txt -r requirements-dev.txt
+
+install install-dev lint format dev \
+test test-unit test-contract test-integration: $(VENV)/bin/python
 
 ##@ Development
+
+venv: $(VENV)/bin/python ## .venv erstellen — wird automatisch ausgeführt wenn ein Target es benötigt
 
 install: ## Install production dependencies
 	@$(PIP) install -r requirements.txt
@@ -64,24 +88,24 @@ install-dev: ## Install all dependencies (production + dev)
 	@$(PIP) install -r requirements.txt -r requirements-dev.txt
 
 lint: ## Run ruff linter
-	@ruff check app/ tests/ main.py
+	@$(RUFF) check app/ tests/ main.py
 
 format: ## Run ruff formatter
-	@ruff format app/ tests/ main.py
+	@$(RUFF) format app/ tests/ main.py
 
 dev: ## Start development server with auto-reload
-	@uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+	@$(UVICORN) main:app --host 0.0.0.0 --port 8000 --reload
 
 ##@ Testing
 
 test: ## Run all tests
-	@pytest tests/ -v
+	@$(PYTEST) tests/ -v
 
 test-unit: ## Run unit tests only
-	@pytest tests/unit/ -v
+	@$(PYTEST) tests/unit/ -v
 
 test-contract: ## Run contract tests only (requires API keys)
-	@pytest tests/contract/ -v
+	@$(PYTEST) tests/contract/ -v
 
 test-integration: ## Run integration tests (startet Test-Postgres auf Port 5433)
 	docker compose -f docker-compose.test.yml up -d postgres
@@ -89,7 +113,7 @@ test-integration: ## Run integration tests (startet Test-Postgres auf Port 5433)
 	@until [ "$$(docker inspect --format='{{.State.Health.Status}}' decisionmap-ai-test-postgres 2>/dev/null)" = "healthy" ]; do \
 	  sleep 2; \
 	done
-	POSTGRES_URL=postgresql://test:test@localhost:5433/decisionmap_test pytest tests/ -v; \
+	POSTGRES_URL=postgresql://test:test@localhost:5433/decisionmap_test $(PYTEST) tests/ -v; \
 	  _exit=$$?; \
 	  docker compose -f docker-compose.test.yml down -v; \
 	  exit $$_exit
