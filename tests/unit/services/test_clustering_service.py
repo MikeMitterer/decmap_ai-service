@@ -38,6 +38,14 @@ def cluster_repo() -> AsyncMock:
 
 
 @pytest.fixture
+def tag_repo() -> AsyncMock:
+    repo = AsyncMock()
+    repo.upsert_tag = AsyncMock(return_value="tag-uuid-001")
+    repo.assign_tag_to_cluster = AsyncMock()
+    return repo
+
+
+@pytest.fixture
 def problem_repo_with_problems() -> AsyncMock:
     """Returns 3 approved problems with embeddings."""
     repo = AsyncMock()
@@ -74,8 +82,8 @@ def problem_repo_empty() -> AsyncMock:
 
 
 @pytest.fixture
-def clustering_service(mock_llm_provider, problem_repo_with_problems, cluster_repo):
-    return ClusteringService(mock_llm_provider, problem_repo_with_problems, cluster_repo)
+def clustering_service(mock_llm_provider, problem_repo_with_problems, cluster_repo, tag_repo):
+    return ClusteringService(mock_llm_provider, problem_repo_with_problems, cluster_repo, tag_repo)
 
 
 # ---------------------------------------------------------------------------
@@ -84,10 +92,10 @@ def clustering_service(mock_llm_provider, problem_repo_with_problems, cluster_re
 
 
 async def test_clustering_skipped_with_fewer_than_3_problems(
-    mock_llm_provider, problem_repo_empty, cluster_repo
+    mock_llm_provider, problem_repo_empty, cluster_repo, tag_repo
 ) -> None:
     """Clustering is skipped and returns zero clusters when < 3 problems exist."""
-    service = ClusteringService(mock_llm_provider, problem_repo_empty, cluster_repo)
+    service = ClusteringService(mock_llm_provider, problem_repo_empty, cluster_repo, tag_repo)
     result = await service.run_clustering()
 
     assert result.clusters_updated == 0
@@ -96,10 +104,10 @@ async def test_clustering_skipped_with_fewer_than_3_problems(
 
 
 async def test_hdbscan_is_called_with_embeddings(
-    mock_llm_provider, problem_repo_with_problems, cluster_repo
+    mock_llm_provider, problem_repo_with_problems, cluster_repo, tag_repo
 ) -> None:
     """HDBSCAN receives a numpy array built from problem embeddings."""
-    service = ClusteringService(mock_llm_provider, problem_repo_with_problems, cluster_repo)
+    service = ClusteringService(mock_llm_provider, problem_repo_with_problems, cluster_repo, tag_repo)
 
     captured_arrays: list[np.ndarray] = []
 
@@ -121,10 +129,10 @@ async def test_hdbscan_is_called_with_embeddings(
 
 
 async def test_cluster_is_upserted_in_db(
-    mock_llm_provider, problem_repo_with_problems, cluster_repo
+    mock_llm_provider, problem_repo_with_problems, cluster_repo, tag_repo
 ) -> None:
     """Discovered clusters are upserted in the cluster repository."""
-    service = ClusteringService(mock_llm_provider, problem_repo_with_problems, cluster_repo)
+    service = ClusteringService(mock_llm_provider, problem_repo_with_problems, cluster_repo, tag_repo)
 
     class MockHDBSCAN:
         def __init__(self, **kwargs):
@@ -143,10 +151,10 @@ async def test_cluster_is_upserted_in_db(
 
 
 async def test_websocket_event_is_broadcast(
-    mock_llm_provider, problem_repo_with_problems, cluster_repo
+    mock_llm_provider, problem_repo_with_problems, cluster_repo, tag_repo
 ) -> None:
     """A cluster.updated WebSocket event is broadcast for each cluster."""
-    service = ClusteringService(mock_llm_provider, problem_repo_with_problems, cluster_repo)
+    service = ClusteringService(mock_llm_provider, problem_repo_with_problems, cluster_repo, tag_repo)
 
     class MockHDBSCAN:
         def __init__(self, **kwargs):
@@ -173,10 +181,10 @@ async def test_websocket_event_is_broadcast(
 
 
 async def test_noise_points_excluded_from_clusters(
-    mock_llm_provider, problem_repo_with_problems, cluster_repo
+    mock_llm_provider, problem_repo_with_problems, cluster_repo, tag_repo
 ) -> None:
     """Problems labeled -1 (noise) by HDBSCAN are not assigned to any cluster."""
-    service = ClusteringService(mock_llm_provider, problem_repo_with_problems, cluster_repo)
+    service = ClusteringService(mock_llm_provider, problem_repo_with_problems, cluster_repo, tag_repo)
 
     class MockHDBSCAN:
         def __init__(self, **kwargs):
@@ -198,11 +206,36 @@ async def test_noise_points_excluded_from_clusters(
 
 
 async def test_clustering_result_contains_duration(
-    mock_llm_provider, problem_repo_empty, cluster_repo
+    mock_llm_provider, problem_repo_empty, cluster_repo, tag_repo
 ) -> None:
     """ClusteringResult always contains a non-negative duration_ms."""
-    service = ClusteringService(mock_llm_provider, problem_repo_empty, cluster_repo)
+    service = ClusteringService(mock_llm_provider, problem_repo_empty, cluster_repo, tag_repo)
     result = await service.run_clustering()
 
     assert isinstance(result.duration_ms, int)
     assert result.duration_ms >= 0
+
+
+async def test_tags_are_persisted_and_linked_to_cluster(
+    mock_llm_provider, problem_repo_with_problems, cluster_repo, tag_repo
+) -> None:
+    """Tags returned by LLM are upserted and linked to the cluster via cluster_tag."""
+    service = ClusteringService(mock_llm_provider, problem_repo_with_problems, cluster_repo, tag_repo)
+
+    class MockHDBSCAN:
+        def __init__(self, **kwargs):
+            self.probabilities_ = np.array([1.0, 1.0, 1.0])
+
+        def fit_predict(self, X: np.ndarray) -> np.ndarray:
+            return np.array([0, 0, 0])
+
+    with patch("app.services.clustering_service.hdbscan") as mock_hdbscan_module:
+        mock_hdbscan_module.HDBSCAN = MockHDBSCAN
+        await service.run_clustering()
+
+    # mock_llm_provider.generate_tags returns [{"label": "AI Governance", "level": 1}]
+    tag_repo.upsert_tag.assert_awaited_once_with(label="AI Governance", level=1)
+    tag_repo.assign_tag_to_cluster.assert_awaited_once_with(
+        cluster_id="cluster-uuid-001",
+        tag_id="tag-uuid-001",
+    )
