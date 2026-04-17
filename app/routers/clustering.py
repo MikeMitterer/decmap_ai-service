@@ -1,7 +1,7 @@
 import structlog
 from fastapi import APIRouter, Depends
 
-from app.dependencies import get_clustering_service
+from app.dependencies import get_clustering_service, verify_webhook_secret
 from app.models.responses import ClusteringResult
 from app.services.clustering_service import ClusteringService
 
@@ -10,7 +10,7 @@ logger = structlog.get_logger()
 router = APIRouter(prefix="/clustering", tags=["clustering"])
 
 
-@router.post("/run", response_model=ClusteringResult)
+@router.post("/run", response_model=ClusteringResult, dependencies=[Depends(verify_webhook_secret)])
 async def run_clustering(
     service: ClusteringService = Depends(get_clustering_service),
 ) -> ClusteringResult:

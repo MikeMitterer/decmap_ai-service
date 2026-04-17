@@ -4,10 +4,14 @@ from typing import AsyncGenerator
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
 from app.dependencies import init_providers
+from app.rate_limit import limiter
 from app.routers import clustering, health, hooks, similarity, websocket
+from app.scheduler import start_scheduler, stop_scheduler
 
 
 def _configure_logging() -> None:
@@ -48,10 +52,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     )
 
     init_providers()
+    start_scheduler(interval_minutes=settings.clustering_interval)
 
     log.info("ai_service_ready")
     yield
 
+    stop_scheduler()
     log.info("ai_service_shutting_down")
 
 
@@ -65,6 +71,9 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # /similarity and /ws are called from browsers — no credentials needed (no cookies/auth headers).
 # Hook endpoints are server-to-server (Directus → AI service) and protected by WEBHOOK_SECRET.

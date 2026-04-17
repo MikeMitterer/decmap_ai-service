@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -34,3 +36,5 @@ class HealthResponse(BaseModel):
     version: str
     embedding_provider: str
     llm_provider: str
+    next_clustering_run: datetime | None = None
+    last_clustering_run: datetime | None = None

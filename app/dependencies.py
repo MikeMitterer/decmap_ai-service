@@ -13,7 +13,7 @@ from typing import AsyncGenerator
 
 import psycopg
 import structlog
-from fastapi import Depends
+from fastapi import Depends, Header, HTTPException, status
 
 from app.config import settings
 from app.providers.embedding.base import EmbeddingProvider
@@ -22,6 +22,7 @@ from app.providers.llm.base import LLMProvider
 from app.providers.llm.factory import create_llm_provider
 from app.repositories.cluster_repository import ClusterRepository
 from app.repositories.problem_repository import ProblemRepository
+from app.repositories.tag_repository import TagRepository
 from app.services.clustering_service import ClusteringService
 from app.services.similarity_service import SimilarityService
 from app.services.solution_service import SolutionService
@@ -60,6 +61,26 @@ def get_llm_provider() -> LLMProvider:
 
 
 # ---------------------------------------------------------------------------
+# Webhook authentication
+# ---------------------------------------------------------------------------
+
+
+def verify_webhook_secret(x_webhook_secret: str | None = Header(default=None)) -> None:
+    """Validate the shared secret sent by Directus Flows.
+
+    If WEBHOOK_SECRET is not configured, validation is skipped (dev mode).
+    In production, always set WEBHOOK_SECRET.
+    """
+    if not settings.webhook_secret:
+        return
+    if x_webhook_secret != settings.webhook_secret:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing webhook secret",
+        )
+
+
+# ---------------------------------------------------------------------------
 # Per-request DB connection
 # ---------------------------------------------------------------------------
 
@@ -85,6 +106,12 @@ def get_cluster_repo(
     conn: psycopg.AsyncConnection = Depends(get_db_conn),  # type: ignore[type-arg]
 ) -> ClusterRepository:
     return ClusterRepository(conn)
+
+
+def get_tag_repo(
+    conn: psycopg.AsyncConnection = Depends(get_db_conn),  # type: ignore[type-arg]
+) -> TagRepository:
+    return TagRepository(conn)
 
 
 # ---------------------------------------------------------------------------
@@ -122,5 +149,6 @@ def get_clustering_service(
     llm_provider: LLMProvider = Depends(get_llm_provider),
     problem_repo: ProblemRepository = Depends(get_problem_repo),
     cluster_repo: ClusterRepository = Depends(get_cluster_repo),
+    tag_repo: TagRepository = Depends(get_tag_repo),
 ) -> ClusteringService:
-    return ClusteringService(llm_provider, problem_repo, cluster_repo)
+    return ClusteringService(llm_provider, problem_repo, cluster_repo, tag_repo)

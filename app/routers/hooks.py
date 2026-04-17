@@ -2,13 +2,14 @@ from enum import StrEnum
 
 import psycopg
 import structlog
-from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 
 from app.config import settings
 from app.dependencies import (
     get_embedding_provider,
     get_llm_provider,
     get_spam_filter_service,
+    verify_webhook_secret,
 )
 from app.models.events import (
     ProblemApprovedEvent,
@@ -32,6 +33,7 @@ from app.providers.embedding.base import EmbeddingProvider
 from app.providers.llm.base import LLMProvider
 from app.repositories.cluster_repository import ClusterRepository
 from app.repositories.problem_repository import ProblemRepository
+from app.repositories.tag_repository import TagRepository
 from app.services import websocket_service
 from app.services.clustering_service import ClusteringService
 from app.services.solution_service import SolutionService
@@ -49,25 +51,11 @@ class ProblemStatus(StrEnum):
     REJECTED = "rejected"
 
 
-def _verify_webhook_secret(x_webhook_secret: str | None = Header(default=None)) -> None:
-    """Validate the shared secret sent by Directus Flows.
-
-    If WEBHOOK_SECRET is not configured, validation is skipped (dev mode).
-    In production, always set WEBHOOK_SECRET.
-    """
-    if not settings.webhook_secret:
-        return
-    if x_webhook_secret != settings.webhook_secret:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or missing webhook secret",
-        )
-
 
 @router.post(
     "/problem-submitted",
     status_code=status.HTTP_200_OK,
-    dependencies=[Depends(_verify_webhook_secret)],
+    dependencies=[Depends(verify_webhook_secret)],
 )
 async def problem_submitted(
     payload: ProblemSubmittedPayload,
@@ -139,7 +127,7 @@ async def problem_submitted(
 @router.post(
     "/problem-approved",
     status_code=status.HTTP_200_OK,
-    dependencies=[Depends(_verify_webhook_secret)],
+    dependencies=[Depends(verify_webhook_secret)],
 )
 async def problem_approved(
     payload: ProblemApprovedRequest,
@@ -199,7 +187,8 @@ async def problem_approved(
             async with await psycopg.AsyncConnection.connect(settings.postgres_url) as conn:
                 problem_repo = ProblemRepository(conn)
                 cluster_repo = ClusterRepository(conn)
-                clustering_svc = ClusteringService(llm_provider, problem_repo, cluster_repo)
+                tag_repo = TagRepository(conn)
+                clustering_svc = ClusteringService(llm_provider, problem_repo, cluster_repo, tag_repo)
                 await clustering_svc.run_clustering()
 
             # 4. Broadcast approval event
@@ -219,7 +208,7 @@ async def problem_approved(
 @router.post(
     "/solution-approved",
     status_code=status.HTTP_200_OK,
-    dependencies=[Depends(_verify_webhook_secret)],
+    dependencies=[Depends(verify_webhook_secret)],
 )
 async def solution_approved(
     payload: SolutionApprovedRequest,
@@ -244,7 +233,7 @@ async def solution_approved(
 @router.post(
     "/vote-changed",
     status_code=status.HTTP_200_OK,
-    dependencies=[Depends(_verify_webhook_secret)],
+    dependencies=[Depends(verify_webhook_secret)],
 )
 async def vote_changed(
     payload: VoteChangedRequest,

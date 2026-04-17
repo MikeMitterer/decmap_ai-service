@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     bot_ip_max_sessions: int = 5
     app_version: str = "0.1.0"
     webhook_secret: str = ""
+    # Rate limit for POST /similarity — format: "<count>/<period>" e.g. "10/minute"
+    similarity_rate_limit: str = "10/minute"
     # Comma-separated list of allowed CORS origins.
     # Example: "https://app.example.com,https://admin.example.com"
     cors_origins: list[str] = ["http://localhost:3000"]

@@ -10,6 +10,7 @@ from app.models.responses import ClusteringResult
 from app.providers.llm.base import LLMProvider
 from app.repositories.cluster_repository import ClusterRepository
 from app.repositories.problem_repository import ProblemRepository
+from app.repositories.tag_repository import TagRepository
 from app.services import websocket_service
 
 logger = structlog.get_logger()
@@ -48,10 +49,12 @@ class ClusteringService:
         llm_provider: LLMProvider,
         problem_repo: ProblemRepository,
         cluster_repo: ClusterRepository,
+        tag_repo: TagRepository,
     ) -> None:
         self._llm_provider = llm_provider
         self._problem_repo = problem_repo
         self._cluster_repo = cluster_repo
+        self._tag_repo = tag_repo
 
     async def run_clustering(self) -> ClusteringResult:
         """Execute the full clustering pipeline.
@@ -114,7 +117,18 @@ class ClusteringService:
                 centroid=centroid,
             )
 
-            # d. Update problem_cluster junction table
+            # d. Persist tags and link them to the cluster
+            for tag in tags:
+                tag_id = await self._tag_repo.upsert_tag(
+                    label=tag["label"],
+                    level=tag.get("level", 1),
+                )
+                await self._tag_repo.assign_tag_to_cluster(
+                    cluster_id=db_cluster_id,
+                    tag_id=tag_id,
+                )
+
+            # e. Update problem_cluster junction table
             for i, problem in enumerate(member_problems):
                 weight = float(probabilities[member_indices[i]])
                 await self._cluster_repo.assign_problem_to_cluster(
@@ -123,7 +137,7 @@ class ClusteringService:
                     weight=weight,
                 )
 
-            # e. Broadcast WebSocket event
+            # f. Broadcast WebSocket event
             event = ClusterUpdatedEvent(
                 payload=ClusterUpdatedPayload(
                     id=db_cluster_id,
